@@ -127,12 +127,17 @@ if (isset($_POST['save']) && isset($_SESSION['original_docx'])) {
                 $keyWithoutBrackets = preg_replace('/^\[\[(.*?)\]\]$/', '$1', $key);
                 // Перевірка, чи це плейсхолдер для дати
                 $isDateField = strpos($keyWithoutBrackets, 'DATE') !== false;
+                // Перевірка, чи це ключ для ID
+                $isIDField = $keyWithoutBrackets == 'ID';
             ?>
                 <div class="key-input">
                     <label><?= htmlspecialchars($key) ?>:</label>
                     <?php if ($isDateField): ?>
                         <!-- Поле для вибору дати (формат YYYY-MM-DD) -->
                         <input type="date" name="keys[<?= htmlspecialchars($key) ?>]" value="<?= htmlspecialchars($keyWithoutBrackets) ?>" oninput="updatePreview('<?= htmlspecialchars($key) ?>', this.value)">
+                    <?php elseif ($isIDField): ?>
+                        <!-- Поле для числа (ID) -->
+                        <input type="number" name="keys[<?= htmlspecialchars($key) ?>]" value="<?= htmlspecialchars($keyWithoutBrackets) ?>" oninput="updatePreview('<?= htmlspecialchars($key) ?>', this.value)">
                     <?php else: ?>
                         <!-- Поле для текстового введення -->
                         <input type="text" name="keys[<?= htmlspecialchars($key) ?>]" value="<?= htmlspecialchars($keyWithoutBrackets) ?>" oninput="updatePreview('<?= htmlspecialchars($key) ?>', this.value)">
