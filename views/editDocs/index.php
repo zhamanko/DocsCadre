@@ -5,15 +5,12 @@ use PhpOffice\PhpWord\IOFactory;
 
 session_start();
 
-// Завантаження DOCX
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['document'])) {
     $file = $_FILES['document'];
     $tmpPath = $file['tmp_name'];
 
-    // Зберігаємо оригінал у сесії
     $_SESSION['original_docx'] = file_get_contents($tmpPath);
 
-    // Читаємо вміст для попереднього перегляду
     $phpWord = IOFactory::load($tmpPath);
     $content = '';
 
@@ -30,31 +27,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['document'])) {
     $_SESSION['preview_content'] = $content;
 }
 
-// Збереження з редагованими значеннями
 if (isset($_POST['save']) && isset($_SESSION['original_docx'])) {
     $tempFile = tempnam(sys_get_temp_dir(), 'docx');
     file_put_contents($tempFile, $_SESSION['original_docx']);
-    
+
     $zip = new ZipArchive();
     if ($zip->open($tempFile) === true) {
-        // Зчитуємо XML вміст документа
         $xml = $zip->getFromName('word/document.xml');
 
-        // Заміняємо плейсхолдери
         foreach ($_POST['keys'] as $oldKey => $newValue) {
-            // Очищаємо ключ без дужок
-            $oldKeyWithoutBrackets = trim($oldKey, '[]'); // Видаляємо квадратні дужки по обидва боки
+            $oldKeyWithoutBrackets = trim($oldKey, '[]');
 
-            // Заміна плейсхолдера у документі
-            // Застосовуємо правильну екрановану заміну
+            if (strpos($oldKeyWithoutBrackets, 'DATE') !== false && !empty($newValue)) {
+                $date = DateTime::createFromFormat('Y-m-d', $newValue);
+                $newValue = $date ? $date->format('d.m.Y') : $newValue;
+            }
+
             $xml = preg_replace('/\[\[' . preg_quote($oldKeyWithoutBrackets, '/') . '\]\]/', $newValue, $xml);
         }
 
-        // Оновлюємо файл в архіві
         $zip->addFromString('word/document.xml', $xml);
         $zip->close();
 
-        // Відправляємо файл назад на скачування
         header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
         header('Content-Disposition: attachment; filename="modified.docx"');
         readfile($tempFile);
@@ -64,8 +58,6 @@ if (isset($_POST['save']) && isset($_SESSION['original_docx'])) {
         echo "Не вдалося відкрити DOCX.";
     }
 }
-
-
 ?>
 
 <!DOCTYPE html>
@@ -133,13 +125,18 @@ if (isset($_POST['save']) && isset($_SESSION['original_docx'])) {
             <h2>Редагувати значення:</h2>
             <?php foreach ($_SESSION['keys'] as $key):
                 $keyWithoutBrackets = preg_replace('/^\[\[(.*?)\]\]$/', '$1', $key);
+                // Перевірка, чи це плейсхолдер для дати
+                $isDateField = strpos($keyWithoutBrackets, 'DATE') !== false;
             ?>
                 <div class="key-input">
                     <label><?= htmlspecialchars($key) ?>:</label>
-                    <input type="text"
-                        name="keys[<?= htmlspecialchars($key) ?>]"
-                        value="<?= htmlspecialchars($keyWithoutBrackets) ?>"
-                        oninput="updatePreview('<?= htmlspecialchars($key) ?>', this.value)">
+                    <?php if ($isDateField): ?>
+                        <!-- Поле для вибору дати (формат YYYY-MM-DD) -->
+                        <input type="date" name="keys[<?= htmlspecialchars($key) ?>]" value="<?= htmlspecialchars($keyWithoutBrackets) ?>" oninput="updatePreview('<?= htmlspecialchars($key) ?>', this.value)">
+                    <?php else: ?>
+                        <!-- Поле для текстового введення -->
+                        <input type="text" name="keys[<?= htmlspecialchars($key) ?>]" value="<?= htmlspecialchars($keyWithoutBrackets) ?>" oninput="updatePreview('<?= htmlspecialchars($key) ?>', this.value)">
+                    <?php endif; ?>
                 </div>
             <?php endforeach; ?>
             <button type="submit" name="save">Зберегти зміни</button>
@@ -167,6 +164,15 @@ if (isset($_POST['save']) && isset($_SESSION['original_docx'])) {
 
                 preview.innerHTML = updated;
             }
+
+            document.querySelectorAll('input[type="text"]').forEach(input => {
+                input.addEventListener('input', function(e) {
+                    const value = e.target.value;
+                    if (/^\d{2}(\.\d{0,2})?(\.\d{0,4})?$/.test(value)) {
+                        e.target.value = value.replace(/^(\d{2})(\d{0,2})(\d{0,4})?$/, '$1.$2.$3');
+                    }
+                });
+            });
         </script>
     <?php endif; ?>
 </body>
