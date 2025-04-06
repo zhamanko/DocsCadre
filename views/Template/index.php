@@ -90,8 +90,10 @@
     <script>
         let btnAddDocs = document.getElementById('addDocs');
         let btnTemplates = document.getElementById('templates');
+        let btnCheckTemplates = document.getElementById('checkDocs');
 
         btnAddDocs.setAttribute('href', './../addDocs');
+        btnCheckTemplates.setAttribute('href', './../checkDocs/');
         btnTemplates.classList.add('opacity-50', 'cursor-not-allowed');
 
         const inpType = document.getElementById('filterType');

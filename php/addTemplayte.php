@@ -32,19 +32,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("UPDATE template SET path = :path WHERE type = :type AND category = :category");
             $stmt->bindParam(':type', $type);
             $stmt->bindParam(':category', $category);
-            $stmt->bindParam(':path', $filePath);
+            $stmt->bindParam(':path', $fileName);
 
-            if ($stmt->execute() && move_uploaded_file($file['tmp_name'], $filePath)) {
+            if ($stmt->execute() && move_uploaded_file($file['tmp_name'], $fileName)) {
                 echo json_encode(['success' => true, 'message' => 'Шаблон успішно перезаписано']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Не вдалося перезаписати шаблон']);
             }
         } else {
-            if (move_uploaded_file($file['tmp_name'], $filePath)) {
+            if (move_uploaded_file($file['tmp_name'], $fileName)) {
                 $stmt = $conn->prepare("INSERT INTO template (type, category, path) VALUES (:type, :category, :path)");
                 $stmt->bindParam(':type', $type);
                 $stmt->bindParam(':category', $category);
-                $stmt->bindParam(':path', $filePath);
+                $stmt->bindParam(':path', $fileName);
 
                 if ($stmt->execute()) {
                     echo json_encode(['success' => true, 'message' => 'Шаблон успішно додано']);

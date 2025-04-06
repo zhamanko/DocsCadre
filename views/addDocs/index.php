@@ -89,10 +89,12 @@
     <script>
         let btnAddDocs = document.getElementById('addDocs');
         let btnTemplates = document.getElementById('templates');
+        let btnCheckTemplates = document.getElementById('checkDocs');
 
         btnAddDocs.setAttribute('href', 'javascript:void(0);');
         btnAddDocs.classList.add('opacity-50', 'cursor-not-allowed');
 
+        btnCheckTemplates.setAttribute('href', './../checkDocs/');
         btnTemplates.setAttribute('href', './../Template/');
 
         let inpType = document.getElementById('type');

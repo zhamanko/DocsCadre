@@ -7,7 +7,7 @@ session_start();
 
 if (isset($_GET['path'])) {
     $baseDir = './../../src/template/';
-    $userPath = $baseDir . urldecode($_GET['path']); 
+    $userPath = $baseDir . urldecode($_GET['path']);
 
     if (file_exists($userPath)) {
         $tmpPath = $userPath;
@@ -157,6 +157,14 @@ if (isset($_POST['save']) && isset($_SESSION['original_docx'])) {
 
 
     <script>
+        let btnAddDocs = document.getElementById('addDocs');
+        let btnTemplates = document.getElementById('templates');
+        let btnCheckTemplates = document.getElementById('checkDocs');
+
+        btnAddDocs.setAttribute('href', './../addDocs');
+        btnCheckTemplates.setAttribute('href', './../checkDocs/');
+        btnTemplates.setAttribute('href', './../Template/');
+
         const originalContent = `<?= preg_replace('/\[\[(.*?)\]\]/', '<mark data-key="[[\1]]">\1</mark>', htmlspecialchars($_SESSION['preview_content'])) ?>`;
         const preview = document.getElementById('previewContent');
         const keyValues = {};

@@ -153,6 +153,16 @@ if (isset($_POST['save']) && isset($_SESSION['original_docx'])) {
 
 
     <script>
+        let btnAddDocs = document.getElementById('addDocs');
+        let btnTemplates = document.getElementById('templates');
+        let btnCheckTemplates = document.getElementById('checkDocs');
+
+        btnCheckTemplates.setAttribute('href', 'javascript:void(0);');
+        btnCheckTemplates.classList.add('opacity-50', 'cursor-not-allowed');
+
+        btnAddDocs.setAttribute('href', './../addDocs/');
+        btnTemplates.setAttribute('href', './../Template/');
+
         const originalContent = `<?= preg_replace('/\[\[(.*?)\]\]/', '<mark data-key="[[\1]]">\1</mark>', htmlspecialchars($_SESSION['preview_content'])) ?>`;
         const preview = document.getElementById('previewContent');
         const keyValues = {};
