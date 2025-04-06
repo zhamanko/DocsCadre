@@ -5,34 +5,27 @@ use PhpOffice\PhpWord\IOFactory;
 
 session_start();
 
-if (isset($_GET['path'])) {
-    $baseDir = './../../src/template/';
-    $userPath = $baseDir . urldecode($_GET['path']); 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['document'])) {
+    $file = $_FILES['document'];
+    $tmpPath = $file['tmp_name'];
 
-    if (file_exists($userPath)) {
-        $tmpPath = $userPath;
+    $_SESSION['original_docx'] = file_get_contents($tmpPath);
 
-        $_SESSION['original_docx'] = file_get_contents($tmpPath);
+    $phpWord = IOFactory::load($tmpPath);
+    $content = '';
 
-        $phpWord = IOFactory::load($tmpPath);
-        $content = '';
-
-        foreach ($phpWord->getSections() as $section) {
-            foreach ($section->getElements() as $element) {
-                if (method_exists($element, 'getText')) {
-                    $content .= $element->getText() . "\n";
-                }
+    foreach ($phpWord->getSections() as $section) {
+        foreach ($section->getElements() as $element) {
+            if (method_exists($element, 'getText')) {
+                $content .= $element->getText() . "\n";
             }
         }
-
-        preg_match_all('/\[\[(.*?)\]\]/', $content, $matches);
-        $_SESSION['keys'] = array_unique($matches[0]);
-        $_SESSION['preview_content'] = $content;
-    } else {
-        $_SESSION['error'] = "Файл не знайдено.";
     }
-}
 
+    preg_match_all('/\[\[(.*?)\]\]/', $content, $matches);
+    $_SESSION['keys'] = array_unique($matches[0]);
+    $_SESSION['preview_content'] = $content;
+}
 
 if (isset($_POST['save']) && isset($_SESSION['original_docx'])) {
     $tempFile = tempnam(sys_get_temp_dir(), 'docx');
@@ -122,7 +115,10 @@ if (isset($_POST['save']) && isset($_SESSION['original_docx'])) {
 
     <div class="flex flex-col gap-4 p-8">
         <h1 class="text-2xl text-center">Редактор документів DOCX</h1>
-
+        <form class="flex flex-col gap-4" method="post" enctype="multipart/form-data">
+            <input class="file:h-full file:p-2 file:bg-gray-800 border-1 border-gray-300 w-full bg-gray-600 text-white rounded-md" type="file" name="document" accept=".docx" required>
+            <button type="submit" class="text-center w-full bg-gray-700 hover:bg-gray-500 py-2 rounded transition">Завантажити</button>
+        </form>
         <div class="flex flex-row gap-4 ">
             <?php if (!empty($_SESSION['preview_content'])): ?>
                 <div class="border border-gray-300 p-4 rounded-md w-1/2">

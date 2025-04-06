@@ -126,7 +126,7 @@
                     if (data.length > 0) {
                         data.forEach(template => {
                             const link = document.createElement('a');
-                            link.href = `./../editDocs?file=${encodeURIComponent(template.path)}`;
+                            link.href = `./../editDocs?path=${template.path}`;
                             link.classList.add('w-full', 'bg-gray-600', 'hover:bg-gray-500', 'text-center', 'text-white', 'rounded-md', 'py-4', 'shadow-xl');
                             link.textContent = template.type + " - " + template.category;
                             listTemplates.appendChild(link);
